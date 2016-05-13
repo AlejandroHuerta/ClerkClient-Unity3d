@@ -30,10 +30,15 @@ namespace ClerkTest {
                     }
                 ]
             }");
-            var rick = JToken.Parse("{name: 'Rick',health:100}");
+            var rick = JToken.Parse(@"
+            {
+                name: 'Rick',
+                health:100
+            }");
 
             var stateManager = new Manager(state);
-            Assert.AreEqual(rick, stateManager.Get<JToken>("players[0]"));
+
+            Assert.AreEqual(rick.ToString(), stateManager.Get<JToken>("players[0]").ToString());
         }
 
         [TestMethod]
@@ -221,7 +226,7 @@ namespace ClerkTest {
 
             var stateManager = new Manager(state);
             stateManager.Push("players", obj);
-            Assert.AreEqual("Jerry", stateManager.Get<string>("players[2]"));
+            Assert.AreEqual(obj.ToString(), stateManager.Get<JToken>("players[2]").ToString());
         }
     }
 }
