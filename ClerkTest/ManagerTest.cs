@@ -292,5 +292,87 @@ namespace ClerkTest {
             stateManager.Concat("players", summer);
             Assert.AreEqual(summer.ToString(), stateManager.Get<JToken>("players[2]").ToString());
         }
+
+        [TestMethod]
+        public void UnshiftAnArray() {
+            var state = JObject.Parse(@"
+            {
+                worldTime: 560,
+                players:[
+                    {
+                        name: 'Rick',
+                        health:100
+                    },
+                    {
+                        name: 'Morty',
+                        health:100
+                    }
+                ]
+            }");
+            var family = JToken.Parse(@"
+            [
+                {
+                    name: 'Jerry',
+                    health:2
+                },
+                {
+                    name: 'Beth',
+                    health:100
+                },
+                {
+                    name: 'Summer',
+                    health:99
+                }
+            ]");
+
+            var stateManager = new Manager(state);
+            stateManager.Unshift("players", family);
+            Assert.AreEqual("Jerry", stateManager.Get<string>("players[0].name"));
+            Assert.AreEqual("Beth", stateManager.Get<string>("players[1].name"));
+            Assert.AreEqual("Summer", stateManager.Get<string>("players[2].name"));
+        }
+
+        [TestMethod]
+        public void UnshiftAValue() {
+            var state = JObject.Parse(@"
+            {
+                players:[
+                    {
+                        name: 'Rick',
+                        health:100
+                    },
+                    {
+                        name: 'Morty',
+                        health:100
+                    }
+                ]
+            }");
+
+            var stateManager = new Manager(state);
+            stateManager.Unshift("players", 600);
+            Assert.AreEqual(600, stateManager.Get<int>("players[0]"));
+        }
+
+        [TestMethod]
+        public void UnshiftAnObject() {
+            var state = JObject.Parse(@"
+            {
+                players:[
+                    {
+                        name: 'Rick',
+                        health:100
+                    },
+                    {
+                        name: 'Morty',
+                        health:100
+                    }
+                ]
+            }");
+            var obj = JToken.Parse("{name: 'Jerry',health:100}");
+
+            var stateManager = new Manager(state);
+            stateManager.Unshift("players", obj);
+            Assert.AreEqual(obj.ToString(), stateManager.Get<JToken>("players[0]").ToString());
+        }
     }
 }

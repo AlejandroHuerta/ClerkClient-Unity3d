@@ -133,8 +133,17 @@ namespace Clerk {
             }//else
         }//Push
 
-        public void Unshift() {
+        public void Unshift(string path, object obj) {
+            var jArray = state.Value<JArray>(path);
+            var json = JToken.FromObject(obj);
 
+            if (json is JArray) {
+                foreach (var child in json.Children().Reverse()) {
+                    jArray.AddFirst(child);
+                }//foreach
+            } else {
+                jArray.AddFirst(json);
+            }//else
         }
 
         public void Splice(string path) {
