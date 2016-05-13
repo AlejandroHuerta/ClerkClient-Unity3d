@@ -228,5 +228,69 @@ namespace ClerkTest {
             stateManager.Push("players", obj);
             Assert.AreEqual(obj.ToString(), stateManager.Get<JToken>("players[2]").ToString());
         }
+
+        [TestMethod]
+        public void SpliceAnArray() {
+            var state = JObject.Parse(@"
+            {
+                worldTime: 560,
+                players:[
+                    {
+                        name: 'Rick',
+                        health:100
+                    },
+                    {
+                        name: 'Morty',
+                        health:100
+                    },
+                    {
+                        name: 'Jerry',
+                        health:2
+                    },
+                    {
+                        name: 'Beth',
+                        health:100
+                    },
+                    {
+                        name: 'Summer',
+                        health:99
+                    }
+                ]
+            }");
+
+            var stateManager = new Manager(state);
+            stateManager.Splice("players[4-1]");
+            Assert.IsNull(stateManager.Get("players[4]"));
+
+            stateManager.Splice("players[1-2]");
+            Assert.AreEqual("Beth", stateManager.Get<string>("players[1].name"));
+        }
+
+        [TestMethod]
+        public void ConcatAnArray() {
+            var state = JObject.Parse(@"
+            {
+                players:[
+                    {
+                        name: 'Rick',
+                        health:100
+                    },
+                    {
+                        name: 'Morty',
+                        health:100
+                    }
+                ]
+            }");
+
+            var summer = JObject.Parse(@"
+            {
+                name: 'Summer',
+                health:100
+            }");
+
+            var stateManager = new Manager(state);
+            stateManager.Concat("players", summer);
+            Assert.AreEqual(summer.ToString(), stateManager.Get<JToken>("players[2]").ToString());
+        }
     }
 }

@@ -60,7 +60,7 @@ namespace Clerk {
         }//Process
 
         List<string> Tokenize(string path) {
-            return path.Split(new char[] { '.', '[', ']' }).AsEnumerable().Where(s => s != "").ToList();
+            return path.Split(new char[] { '.', '[', ']', '-' }).AsEnumerable().Where(s => s != "").ToList();
         }
 
         public object Get(string path) {
@@ -137,13 +137,32 @@ namespace Clerk {
 
         }
 
-        public void Splice() {
+        public void Splice(string path) {
+            var tokens = Tokenize(path);
 
-        }
+            JToken jtoken = state;
 
-        public void Concat() {
+            for (int i = 0; i < tokens.Count - 2; i++) {
+                var token = tokens[i];
+                int idx;
+                if (int.TryParse(token, out idx)) {
+                    jtoken = jtoken[idx];
+                } else {
+                    jtoken = jtoken[token];
+                }//else
+            }//for
 
-        }
+            int index = int.Parse(tokens[tokens.Count - 2]);
+            int count = int.Parse(tokens[tokens.Count - 1]);
+
+            for (int i = 0; i < count; i++) {
+                ((JArray)jtoken).RemoveAt(index);
+            }//for
+        }//Splice
+
+        public void Concat(string path, object obj) {
+            ((JArray)state.SelectToken(path)).Add(obj);
+        }//Concat
 
         public void DeepMerge() {
             
