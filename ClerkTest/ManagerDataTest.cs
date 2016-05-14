@@ -6,7 +6,7 @@ using Newtonsoft.Json.Linq;
 
 namespace ClerkTest {
     [TestClass]
-    public class ManagerTest {
+    public class ManagerDataTest {
 
         [TestMethod]
         public void GetAValue() {
