@@ -173,7 +173,7 @@ namespace Clerk {
             ((JArray)state.SelectToken(path)).Add(obj);
         }//Concat
 
-        public void DeepMerge() {
+        public void DeepMerge(string path, object obj) {
             
         }
     }

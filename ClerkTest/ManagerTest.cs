@@ -374,5 +374,81 @@ namespace ClerkTest {
             stateManager.Unshift("players", obj);
             Assert.AreEqual(obj.ToString(), stateManager.Get<JToken>("players[0]").ToString());
         }
+
+        [TestMethod]
+        public void DeepMergeValue() {
+            var state = JObject.Parse(@"
+            {
+                worldTime: 560
+            }");
+
+            var newState = JObject.Parse(@"
+            {
+                worldTime: 900,
+                gameTime: 200
+            }");
+
+            var stateManager = new Manager(state);
+            stateManager.DeepMerge("", newState);
+            Assert.AreEqual(900, stateManager.Get<int>("worldTime"));
+            Assert.AreEqual(200, stateManager.Get<int>("gameTime"));
+        }
+
+        [TestMethod]
+        public void DeepMergeArray() {
+            var state = JObject.Parse(@"
+            {
+                players:[
+                    {
+                        name: 'Rick',
+                        health:100
+                    },
+                    {
+                        name: 'Morty',
+                        health:100
+                    }
+                ]
+            }");
+
+            var newState = JObject.Parse(@"
+            {
+                players:[
+                    {
+                        name: 'Rick',
+                        health:90
+                    },
+                    {
+                        name: 'Morty',
+                        health:20
+                    }
+                ]
+            }");
+
+            var stateManager = new Manager(state);
+            stateManager.DeepMerge("", newState);
+            Assert.AreEqual(90, stateManager.Get<int>("players[0].health"));
+            Assert.AreEqual(20, stateManager.Get<int>("players[1].health"));
+        }
+
+        [TestMethod]
+        public void DeepMergeObject() {
+            var state = JObject.Parse(@"
+            {
+                player: {
+                            name: 'Rick',
+                            health:100
+                        }
+            }");
+
+            var newState = JObject.Parse(@"
+            {
+                name: 'Rick',
+                health:90
+            }");
+
+            var stateManager = new Manager(state);
+            stateManager.DeepMerge("player", newState);
+            Assert.AreEqual(90, stateManager.Get<int>("worldTime"));
+        }
     }
 }
