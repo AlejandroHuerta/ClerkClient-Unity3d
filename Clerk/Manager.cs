@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using Priority_Queue;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,12 +8,7 @@ using System.Text;
 namespace Clerk {
     public class Manager {
 
-        class TimedAction {
-            public DateTime ExecuteTime { get; set; }
-            public StateMessage Message { get; set; }
-        }//TimedAction
-
-        List<TimedAction> queue = new List<TimedAction>();
+        SimplePriorityQueue<StateMessage> queue = new SimplePriorityQueue<StateMessage>();
 
         JObject state;
         
@@ -20,34 +16,23 @@ namespace Clerk {
             this.state = state;
         }
 
-        public void Enqueue(StateMessage message) {
-            var action = new TimedAction();
-
-            action.Message = message;
+        public void Enqueue(StateMessage message) {            
 
             if (message.at == null) {
-                action.ExecuteTime = DateTime.Now;
-            } else {
-                action.ExecuteTime = Utils.FromUnixTime((long)message.at);
-            }//else
+                message.at = DateTime.Now.ConvertToUnixTime();
+            }
 
-            Enqueue(action);
-        }//Enqueue
-
-        void Enqueue(TimedAction action) {
             lock (queue) {
-                queue.Add(action);
-                queue.Sort((x, y) => x.ExecuteTime.CompareTo(y.ExecuteTime));
+                queue.Enqueue(message, (long)message.at);
             }//lock
         }//Enqueue
 
         public void Update() {
             lock (queue) {
+                var now = DateTime.Now.ConvertToUnixTime();
                 while (queue.Count > 0) {
-                    var now = DateTime.Now;
-                    if (now > queue[0].ExecuteTime) {
-                        Process(queue[0].Message);
-                        queue.RemoveAt(0);
+                    if (now >= queue.First().at) {
+                        Process(queue.Dequeue());
                     } else {
                         break;
                     }//else
@@ -56,7 +41,29 @@ namespace Clerk {
         }//Update
 
         void Process(StateMessage message) {
-
+            switch(message.action) {
+                case StateMessage.Action.CONCAT:
+                    Concat(message.key, message.value);
+                    break;
+                case StateMessage.Action.DEEPMERGE:
+                    DeepMerge(message.key, message.value);
+                    break;
+                case StateMessage.Action.PUSH:
+                    Push(message.key, message.value);
+                    break;
+                case StateMessage.Action.SET:
+                    Set(message.key, message.value);
+                    break;
+                case StateMessage.Action.SPLICE:
+                    Splice(message.key);
+                    break;
+                case StateMessage.Action.UNSET:
+                    Unset(message.key);
+                    break;
+                case StateMessage.Action.UNSHIFT:
+                    Unshift(message.key, message.value);
+                    break;
+            }
         }//Process
 
         List<string> Tokenize(string path) {
