@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using HighEnergy.Collections;
+using Newtonsoft.Json.Linq;
 using Priority_Queue;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,17 @@ namespace Clerk {
         SimplePriorityQueue<StateMessage> queue = new SimplePriorityQueue<StateMessage>();
 
         JObject state;
+
+        class Event {
+            public string Key { get; set; }
+            public List<Action> Handlers { get; }
+
+            public Event() {
+                Handlers = new List<Action>();
+            }//Event
+        }//Event
+
+        Tree<Event> listeners = new Tree<Event>(new Event() { Key = "" });
         
         public Manager(JObject state) {
             this.state = state;
@@ -26,6 +38,44 @@ namespace Clerk {
                 queue.Enqueue(message, (long)message.at);
             }//lock
         }//Enqueue
+
+        public void RegisterListener(string path, Action action) {
+            var tokens = Tokenize(path);
+
+            ITreeNode<Event> node = listeners;
+            foreach(var token in tokens) {
+                var match = node.Children.SingleOrDefault(e => e.Value.Key == token);
+
+                if (match == null) {
+                    var child = new TreeNode<Event>(new Event() { Key = token });
+                    node.Children.Add(child);
+                    node = child;
+                } else {
+                    node = match;
+                }//else
+            }//foreach
+
+            node.Value.Handlers.Add(action);
+        }//RegisterListener
+
+        void FireEvent(string path) {
+            var tokens = Tokenize(path);
+
+            ITreeNode<Event> node = listeners;
+            foreach (var token in tokens) {
+                var match = node.Children.SingleOrDefault(e => e.Value.Key == token);
+
+                if (match == null) {
+                    return;
+                } else {
+                    foreach (var listener in match.Value.Handlers) {
+                        listener.Invoke();
+                    }//foreach
+
+                    node = match;
+                }//else
+            }//foreach            
+        }//FireEvent
 
         public void Update() {
             lock (queue) {
@@ -107,6 +157,8 @@ namespace Clerk {
             }//for
 
             jtoken[tokens[tokens.Count - 1]] = JToken.FromObject(value);
+
+            FireEvent(path);
         }//Set
 
         public void Unset(string path) {
@@ -125,6 +177,8 @@ namespace Clerk {
             }//for
 
             ((JObject)jtoken).Remove(tokens[tokens.Count - 1]);
+
+            FireEvent(path);
         }//Unset
 
         public void Push(string path, object obj) {            
@@ -138,6 +192,8 @@ namespace Clerk {
             } else {
                 jArray.Add(json);
             }//else
+
+            FireEvent(path);
         }//Push
 
         public void Unshift(string path, object obj) {
@@ -151,6 +207,8 @@ namespace Clerk {
             } else {
                 jArray.AddFirst(json);
             }//else
+
+            FireEvent(path);
         }
 
         public void Splice(string path) {
@@ -174,10 +232,14 @@ namespace Clerk {
             for (int i = 0; i < count; i++) {
                 ((JArray)jtoken).RemoveAt(index);
             }//for
+
+            FireEvent(path);
         }//Splice
 
         public void Concat(string path, object obj) {
             ((JArray)state.SelectToken(path)).Add(obj);
+
+            FireEvent(path);
         }//Concat
 
         public void DeepMerge(string path, object obj) {
