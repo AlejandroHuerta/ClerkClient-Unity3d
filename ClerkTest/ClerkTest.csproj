@@ -36,7 +36,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="newtonsoft-unity">
-      <HintPath>..\..\..\Downloads\SocketIoClientDotNet-master\SocketIoClientDotNet-master\Src\SocketIoClientDotNet.net35\newtonsoft-unity\bin\Debug\newtonsoft-unity.dll</HintPath>
+      <HintPath>..\newtonsoft-unity.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>

@@ -382,14 +382,14 @@ namespace ClerkTest {
                 worldTime: 560
             }");
 
-            var newState = JObject.Parse(@"
+            var update = JToken.Parse(@"
             {
                 worldTime: 900,
                 gameTime: 200
             }");
 
             var stateManager = new Manager(state);
-            stateManager.DeepMerge("", newState);
+            stateManager.DeepMerge("", update);
             Assert.AreEqual(900, stateManager.Get<int>("worldTime"));
             Assert.AreEqual(200, stateManager.Get<int>("gameTime"));
         }
@@ -410,7 +410,7 @@ namespace ClerkTest {
                 ]
             }");
 
-            var newState = JObject.Parse(@"
+            var update = JObject.Parse(@"
             {
                 players:[
                     {
@@ -425,7 +425,7 @@ namespace ClerkTest {
             }");
 
             var stateManager = new Manager(state);
-            stateManager.DeepMerge("", newState);
+            stateManager.DeepMerge("", update);
             Assert.AreEqual(90, stateManager.Get<int>("players[0].health"));
             Assert.AreEqual(20, stateManager.Get<int>("players[1].health"));
         }
@@ -440,15 +440,47 @@ namespace ClerkTest {
                         }
             }");
 
-            var newState = JObject.Parse(@"
+            var update = JObject.Parse(@"
             {
                 name: 'Rick',
                 health:90
             }");
 
             var stateManager = new Manager(state);
-            stateManager.DeepMerge("player", newState);
-            Assert.AreEqual(90, stateManager.Get<int>("worldTime"));
+            stateManager.DeepMerge("player", update);
+            Assert.AreEqual(90, stateManager.Get<int>("player.health"));
+        }
+
+
+
+        [TestMethod]
+        public void DeepMergePartialData() {
+            var state = JObject.Parse(@"
+            {
+                world: {
+                    time: 400,
+                    country: {
+                        time: 200,
+                        pop: 5000
+                    }
+                }
+            }");
+
+            var update = JToken.Parse(@"
+            {
+                world: {
+                    time: 200,
+                    country: {
+                        time: 400
+                    }
+                }
+            }");
+
+            var stateManager = new Manager(state);
+            stateManager.DeepMerge("", update);
+            Assert.AreEqual(200, stateManager.Get<int>("world.time"));
+            Assert.AreEqual(400, stateManager.Get<int>("world.country.time"));
+            Assert.AreEqual(5000, stateManager.Get<int>("world.country.pop"));
         }
     }
 }

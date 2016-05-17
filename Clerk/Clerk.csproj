@@ -31,8 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="newtonsoft-unity">
-      <HintPath>..\..\..\Downloads\SocketIoClientDotNet-master\SocketIoClientDotNet-master\Src\SocketIoClientDotNet.net35\newtonsoft-unity\bin\Debug\newtonsoft-unity.dll</HintPath>
+    <Reference Include="newtonsoft-unity, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\newtonsoft-unity.dll</HintPath>
     </Reference>
     <Reference Include="Priority Queue, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OptimizedPriorityQueue.2.0.0\lib\net20\Priority Queue.dll</HintPath>

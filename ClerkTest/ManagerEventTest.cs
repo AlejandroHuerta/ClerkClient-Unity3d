@@ -20,8 +20,6 @@ namespace ClerkTest {
 
             stateManager.Set("worldTime", 400);
 
-            stateManager.Update();
-
             Assert.IsTrue(triggered);
         }
 
@@ -40,8 +38,6 @@ namespace ClerkTest {
             stateManager.RegisterListener("world.time", () => triggered = true);
 
             stateManager.Set("world.time", 400);
-
-            stateManager.Update();
 
             Assert.IsTrue(triggered);
         }
@@ -65,8 +61,6 @@ namespace ClerkTest {
 
             stateManager.Set("players[0].health", 400);
 
-            stateManager.Update();
-
             Assert.IsTrue(triggered);
         }
 
@@ -89,7 +83,37 @@ namespace ClerkTest {
 
             stateManager.Set("players[0].health", 400);
 
-            stateManager.Update();
+            Assert.IsTrue(triggered);
+        }
+
+        [TestMethod]
+        public void ReceiveEventOnDeepMerge() {
+            var state = JObject.Parse(@"
+            {
+                world: {
+                    time: 500,
+                    country: {
+                        time: 300,
+                        pop: 2000
+                    }
+                }
+            }");
+
+            var newState = JObject.Parse(@"
+            {
+                world: {
+                    country: {
+                        pop: 5000
+                    }
+                }
+            }");
+
+            var stateManager = new Manager(state);
+
+            var triggered = false;
+            stateManager.RegisterListener("world.country.pop", () => triggered = true);
+
+            stateManager.Set("world.country.pop", 5000);
 
             Assert.IsTrue(triggered);
         }
