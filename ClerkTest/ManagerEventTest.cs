@@ -16,7 +16,7 @@ namespace ClerkTest {
             var stateManager = new Manager(state);
 
             var triggered = false;
-            stateManager.RegisterListener("worldTime", (change) => triggered = true);
+            stateManager.RegisterListener("worldTime", () => triggered = true);
 
             stateManager.Set("worldTime", 400);
 
@@ -35,7 +35,7 @@ namespace ClerkTest {
             var stateManager = new Manager(state);
 
             var triggered = false;
-            stateManager.RegisterListener("world.time", (change) => triggered = true);
+            stateManager.RegisterListener("world.time", () => triggered = true);
 
             stateManager.Set("world.time", 400);
 
@@ -57,7 +57,7 @@ namespace ClerkTest {
             var stateManager = new Manager(state);
 
             var triggered = false;
-            stateManager.RegisterListener("players", (change) => triggered = true);
+            stateManager.RegisterListener("players", () => triggered = true);
 
             stateManager.Set("players[0].health", 400);
 
@@ -79,7 +79,7 @@ namespace ClerkTest {
             var stateManager = new Manager(state);
 
             var triggered = false;
-            stateManager.RegisterListener("players[0].health", (change) => triggered = true);
+            stateManager.RegisterListener("players[0].health", () => triggered = true);
 
             stateManager.Set("players[0].health", 400);
 
@@ -111,7 +111,7 @@ namespace ClerkTest {
             var stateManager = new Manager(state);
 
             var triggered = false;
-            stateManager.RegisterListener("world.country.pop", (change) => triggered = true);
+            stateManager.RegisterListener("world.country.pop", () => triggered = true);
 
             stateManager.Set("world.country.pop", 5000);
 

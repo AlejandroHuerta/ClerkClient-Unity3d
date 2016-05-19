@@ -16,10 +16,10 @@ namespace Clerk {
 
         class Event {
             public string Key { get; set; }
-            public List<Action<DataChange>> Handlers { get; }
+            public List<Action> Handlers { get; }
 
             public Event() {
-                Handlers = new List<Action<DataChange>>();
+                Handlers = new List<Action>();
             }//Event
         }//Event
 
@@ -32,12 +32,6 @@ namespace Clerk {
             public Token() {
                 Remainder = "";
             }
-        }
-
-        public class DataChange {
-            public JToken Data { get; set; }
-            public string Path { get; set; }
-            public StateMessage.Action Action { get; set; }
         }
 
         public Manager(JObject state) {
@@ -55,7 +49,7 @@ namespace Clerk {
             }//lock
         }//Enqueue
 
-        public void RegisterListener(string path, Action<DataChange> action) {
+        public void RegisterListener(string path, Action action) {
             var tokens = Tokenize(path);
 
             ITreeNode<Event> node = listeners;
@@ -74,7 +68,7 @@ namespace Clerk {
             node.Value.Handlers.Add(action);
         }//RegisterListener
 
-        void FireEvent(string path, JToken data, StateMessage.Action action) {
+        void FireEvent(string path) {
             var tokens = Tokenize(path);
 
             ITreeNode<Event> node = listeners;
@@ -85,7 +79,7 @@ namespace Clerk {
                     return;
                 } else {
                     foreach (var listener in match.Value.Handlers) {
-                        listener.Invoke(new DataChange() { Data = data, Path = path, Action = action });
+                        listener.Invoke();
                     }//foreach
 
                     node = match;
@@ -186,10 +180,9 @@ namespace Clerk {
                 }//else
             }//for
 
-            var data = JToken.FromObject(value);
-            jtoken[tokens[tokens.Count - 1].Value] = data;
+            jtoken[tokens[tokens.Count - 1].Value] = JToken.FromObject(value);
 
-            FireEvent(path, data, StateMessage.Action.SET);
+            FireEvent(path);
         }//Set
 
         public void Unset(string path) {
@@ -207,10 +200,9 @@ namespace Clerk {
                 }//else
             }//for
 
-            var data = ((JObject)jtoken).SelectToken(tokens[tokens.Count - 1].Value);
             ((JObject)jtoken).Remove(tokens[tokens.Count - 1].Value);
 
-            FireEvent(path, data, StateMessage.Action.UNSET);
+            FireEvent(path);
         }//Unset
 
         public void Push(string path, object obj) {
@@ -225,7 +217,7 @@ namespace Clerk {
                 jArray.Add(json);
             }//else
 
-            FireEvent(path, jArray, StateMessage.Action.PUSH);
+            FireEvent(path);
         }//Push
 
         public void Unshift(string path, object obj) {
@@ -240,7 +232,7 @@ namespace Clerk {
                 jArray.AddFirst(json);
             }//else
 
-            FireEvent(path, jArray, StateMessage.Action.UNSHIFT);
+            FireEvent(path);
         }
 
         public void Splice(string path) {
@@ -265,14 +257,13 @@ namespace Clerk {
                 ((JArray)jtoken).RemoveAt(index);
             }//for
 
-            FireEvent(path, null, StateMessage.Action.SPLICE);
+            FireEvent(path);
         }//Splice
 
         public void Concat(string path, object obj) {
-            var jtoken = JToken.FromObject(obj);
-            ((JArray)state.SelectToken(path)).Add(jtoken);
+            ((JArray)state.SelectToken(path)).Add(obj);
 
-            FireEvent(path, jtoken, StateMessage.Action.CONCAT);
+            FireEvent(path);
         }//Concat
 
         public void DeepMerge(string path, object obj) {
