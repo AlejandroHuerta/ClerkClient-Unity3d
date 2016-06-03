@@ -8,7 +8,9 @@ using System.Text;
 
 namespace Clerk {
     public class Manager {
-        readonly char[] delims = new char[] { '.', '[', ']', '-' };
+        readonly char[] DELIMS = new char[] { '.', '[', ']', '-' };
+
+        JsonMergeSettings mergeSettings = new JsonMergeSettings();
 
         SimplePriorityQueue<StateMessage> queue = new SimplePriorityQueue<StateMessage>();
 
@@ -36,6 +38,8 @@ namespace Clerk {
 
         public Manager(JObject state) {
             this.state = state;
+
+            mergeSettings.MergeArrayHandling = MergeArrayHandling.Merge;
         }
 
         public void Enqueue(StateMessage message) {
@@ -68,7 +72,7 @@ namespace Clerk {
             node.Value.Handlers.Add(action);
         }//RegisterListener
 
-        void FireEvent(string path) {
+        ITreeNode<Event> GetNode(string path) {
             var tokens = Tokenize(path);
 
             ITreeNode<Event> node = listeners;
@@ -76,16 +80,46 @@ namespace Clerk {
                 var match = node.Children.SingleOrDefault(e => e.Value.Key == token.Value);
 
                 if (match == null) {
-                    return;
+                    return node;
                 } else {
-                    foreach (var listener in match.Value.Handlers) {
-                        listener.Invoke();
-                    }//foreach
-
                     node = match;
                 }//else
-            }//foreach            
+            }//foreach
+
+            return node;
+        }//GetNode
+
+        void FireEvent(string path) {
+            var node = GetNode(path);
+
+            do {
+                foreach (var listener in node.Value.Handlers) {
+                    listener.Invoke();
+                }//foreach
+
+                node = node.Parent;
+            } while (node != null);
         }//FireEvent
+
+        void FireDeepMergeEvents(string path) {
+            FireEvent(path);
+
+            var node = GetNode(path);
+
+            foreach(var child in node.Children) {
+                FireEvents(child);
+            }//foreach
+        }//FireDeepMergeEvents
+
+        void FireEvents(ITreeNode<Event> node) {
+            foreach (var listener in node.Value.Handlers) {
+                listener.Invoke();
+            }//foreach
+
+            foreach (var child in node.Children) {
+                FireEvents(child);
+            }//foreach
+        }//FireEvents
 
         public void Update() {
             lock (queue) {
@@ -131,7 +165,10 @@ namespace Clerk {
 
             string[] tokens;
             do {
-                tokens = path.Split(delims, 2, StringSplitOptions.RemoveEmptyEntries);
+                tokens = path.Split(DELIMS, 2, StringSplitOptions.RemoveEmptyEntries);
+                if (tokens.Length == 0) {
+                    break;
+                }//if
                 var token = new Token();
                 token.Value = tokens[0];
                 if (tokens.Length > 1) {
@@ -163,8 +200,7 @@ namespace Clerk {
 
             JToken jtoken = state;
 
-            for (int i = 0; i < tokens.Count - 1; i++) {
-                var token = tokens[i];
+            foreach(var token in tokens) {
                 int index;
                 if (int.TryParse(token.Value, out index)) {
                     jtoken = jtoken[index];
@@ -180,27 +216,14 @@ namespace Clerk {
                 }//else
             }//for
 
-            jtoken[tokens[tokens.Count - 1].Value] = JToken.FromObject(value);
+            jtoken.Replace(JToken.FromObject(value));
 
             FireEvent(path);
         }//Set
 
         public void Unset(string path) {
-            var tokens = Tokenize(path);
-
-            JToken jtoken = state;
-
-            for (int i = 0; i < tokens.Count - 1; i++) {
-                var token = tokens[i];
-                int index;
-                if (int.TryParse(token.Value, out index)) {
-                    jtoken = jtoken[index];
-                } else {
-                    jtoken = jtoken[token.Value];
-                }//else
-            }//for
-
-            ((JObject)jtoken).Remove(tokens[tokens.Count - 1].Value);
+            var target = state.SelectToken(path);
+            target.Parent.Remove();
 
             FireEvent(path);
         }//Unset
@@ -267,35 +290,26 @@ namespace Clerk {
         }//Concat
 
         public void DeepMerge(string path, object obj) {
-            var jtoken = JToken.FromObject(obj);
+            var tokens = Tokenize(path);
 
-            if (jtoken.Type == JTokenType.Array) {
-                DeepMergeArray(path, jtoken as JArray);
-            } else if (jtoken.HasValues) {
-                foreach (var child in jtoken) {
-                    if (child.Type == JTokenType.Object) {
+            JToken jtoken = state;
 
-                    } else if (child.Type == JTokenType.Property) {
-                        DeepMergeProperty(path, child as JProperty);
-                    }
-                }
+            foreach(var token in tokens) {
+                int index;
+                if (int.TryParse(token.Value, out index)) {
+                    jtoken = jtoken[index];
+                } else {
+                    jtoken = jtoken[token.Value];
+                }//else
+            }//foreach
+
+            if (jtoken is JObject) {
+                ((JObject)jtoken).Merge(obj, mergeSettings);
             } else {
-                Set(path, obj);
-            }
+                jtoken.Replace(JToken.FromObject(obj));
+            }//else
+
+            FireDeepMergeEvents(path);
         }//DeepMerge
-
-        void DeepMergeObject(string path, JObject obj) {
-
-        }
-
-        void DeepMergeProperty(string path, JProperty obj) {
-            DeepMerge(path + "." + obj.Name, obj.Value);
-        }
-
-        void DeepMergeArray(string path, JArray obj) {
-            for (int i = 0; i < obj.Count; i++) {
-                DeepMerge(path + "[" + i.ToString() + "]", obj[i]);
-            }
-        }
     }
 }

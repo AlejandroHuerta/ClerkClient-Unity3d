@@ -81,7 +81,7 @@ namespace ClerkTest {
             var triggered = false;
             stateManager.RegisterListener("players[0].health", () => triggered = true);
 
-            stateManager.Set("players[0].health", 400);
+            stateManager.DeepMerge("players[0].health", 400);
 
             Assert.IsTrue(triggered);
         }
@@ -113,7 +113,7 @@ namespace ClerkTest {
             var triggered = false;
             stateManager.RegisterListener("world.country.pop", () => triggered = true);
 
-            stateManager.Set("world.country.pop", 5000);
+            stateManager.DeepMerge("", newState);
 
             Assert.IsTrue(triggered);
         }
