@@ -17,7 +17,7 @@ namespace Clerk {
 
         public Action action { get; set; }
         public string key { get; set; }
-        public string value { get; set; }
+        public object value { get; set; }
         public long? at { get; set; }
     }
 }

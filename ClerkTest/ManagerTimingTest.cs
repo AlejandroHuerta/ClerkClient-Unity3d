@@ -20,7 +20,7 @@ namespace ClerkTest {
             var message = new StateMessage();
             message.action = StateMessage.Action.SET;
             message.key = "worldTime";
-            message.value = "200";
+            message.value = 200;
 
             stateManager.Enqueue(message);
 
@@ -41,7 +41,7 @@ namespace ClerkTest {
             var message = new StateMessage();
             message.action = StateMessage.Action.SET;
             message.key = "worldTime";
-            message.value = "200";
+            message.value = 200;
             message.at = DateTime.Now.AddSeconds(1).ConvertToUnixTime();
 
             stateManager.Enqueue(message);
@@ -77,7 +77,7 @@ namespace ClerkTest {
             message = new StateMessage();
             message.action = StateMessage.Action.SET;
             message.key = "worldTime";
-            message.value = "300";
+            message.value = 300;
             message.at = null;
 
             stateManager.Enqueue(message);
