@@ -198,25 +198,29 @@ namespace Clerk {
         public void Set(string path, object value) {
             var tokens = Tokenize(path);
 
-            JToken jtoken = state;
+            if (tokens.Count == 0) {
+                state = (JObject)value;
+            } else {
+                JToken jtoken = state;
 
-            foreach(var token in tokens) {
-                int index;
-                if (int.TryParse(token.Value, out index)) {
-                    jtoken = jtoken[index];
-                } else {
-                    var nextJtoken = jtoken[token.Value];
+                foreach (var token in tokens) {
+                    int index;
+                    if (int.TryParse(token.Value, out index)) {
+                        jtoken = jtoken[index];
+                    } else {
+                        var nextJtoken = jtoken[token.Value];
 
-                    if (nextJtoken == null) {
-                        nextJtoken = new JObject();
-                        jtoken[token.Value] = nextJtoken;
-                    }//if
+                        if (nextJtoken == null) {
+                            nextJtoken = new JObject();
+                            jtoken[token.Value] = nextJtoken;
+                        }//if
 
-                    jtoken = nextJtoken;
-                }//else
-            }//for
+                        jtoken = nextJtoken;
+                    }//else
+                }//for
 
-            jtoken.Replace(JToken.FromObject(value));
+                jtoken.Replace(JToken.FromObject(value));
+            }
 
             FireEvent(path);
         }//Set

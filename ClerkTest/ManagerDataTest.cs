@@ -80,6 +80,18 @@ namespace ClerkTest {
         }
 
         [TestMethod]
+        public void SetTopLevelValue() {
+            var state = JObject.Parse(@"
+            {
+                worldTime: 560
+            }");
+
+            var stateManager = new Manager(state);
+            stateManager.Set("", JObject.Parse("{\"game\": 400}"));
+            Assert.AreEqual(400, stateManager.Get<int>("game"));
+        }
+
+        [TestMethod]
         public void SetADeeperValue() {
             var state = JObject.Parse(@"
             {
