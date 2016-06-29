@@ -60,6 +60,7 @@
     <Compile Include="ManagerDataTest.cs" />
     <Compile Include="ManagerEventTest.cs" />
     <Compile Include="ManagerTimingTest.cs" />
+    <Compile Include="UtilsTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Clerk\Clerk.csproj">
