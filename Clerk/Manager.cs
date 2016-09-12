@@ -18,7 +18,7 @@ namespace Clerk {
 
         class Event {
             public string Key { get; set; }
-            public List<Action> Handlers { get; }
+            public List<Action> Handlers { get; private set; }
 
             public Event() {
                 Handlers = new List<Action>();
