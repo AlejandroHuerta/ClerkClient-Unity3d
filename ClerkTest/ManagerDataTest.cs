@@ -92,6 +92,18 @@ namespace ClerkTest {
         }
 
         [TestMethod]
+        public void SetADictionaryValue() {
+            var state = JObject.Parse(@"
+            {
+                2: 560
+            }");
+
+            var stateManager = new Manager(state);
+            stateManager.Set("2", 600);
+            Assert.AreEqual(600, stateManager.Get<int>("2"));
+        }
+
+        [TestMethod]
         public void SetADeeperValue() {
             var state = JObject.Parse(@"
             {

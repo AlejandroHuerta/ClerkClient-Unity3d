@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Clerk {
     public class Manager {
@@ -30,6 +31,7 @@ namespace Clerk {
         class Token {
             public string Value { get; set; }
             public string Remainder { get; set; }
+            public bool Indexer { get; set; }
 
             public Token() {
                 Remainder = "";
@@ -169,8 +171,7 @@ namespace Clerk {
                 if (tokens.Length == 0) {
                     break;
                 }//if
-                var token = new Token();
-                token.Value = tokens[0];
+                var token = new Token() { Indexer = Regex.IsMatch(path, @"^[\d]+\]"), Value = tokens[0] };
                 if (tokens.Length > 1) {
                     token.Remainder = tokens[1];
                     path = tokens[1];
@@ -205,7 +206,7 @@ namespace Clerk {
 
                 foreach (var token in tokens) {
                     int index;
-                    if (int.TryParse(token.Value, out index)) {
+                    if (token.Indexer && int.TryParse(token.Value, out index)) {
                         jtoken = jtoken[index];
                     } else {
                         var nextJtoken = jtoken[token.Value];
@@ -270,7 +271,7 @@ namespace Clerk {
             for (int i = 0; i < tokens.Count - 2; i++) {
                 var token = tokens[i];
                 int idx;
-                if (int.TryParse(token.Value, out idx)) {
+                if (token.Indexer && int.TryParse(token.Value, out idx)) {
                     jtoken = jtoken[idx];
                 } else {
                     jtoken = jtoken[token.Value];
@@ -300,7 +301,7 @@ namespace Clerk {
 
             foreach(var token in tokens) {
                 int index;
-                if (int.TryParse(token.Value, out index)) {
+                if (token.Indexer && int.TryParse(token.Value, out index)) {
                     jtoken = jtoken[index];
                 } else {
                     jtoken = jtoken[token.Value];
