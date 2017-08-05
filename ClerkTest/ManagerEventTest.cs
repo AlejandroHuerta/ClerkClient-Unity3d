@@ -157,5 +157,20 @@ namespace ClerkTest {
 
             Assert.IsFalse(triggered);
         }
+
+        [TestMethod]
+        public void UnregisterListenerFromNonPath() {
+            var state = JObject.Parse(@"
+            {
+                world: {
+                    time: 500
+                }
+            }");
+
+            var stateManager = new Manager(state);
+            
+            Action action = () => { };
+            stateManager.UnregisterListener("world.time", action);
+        }
     }
 }
