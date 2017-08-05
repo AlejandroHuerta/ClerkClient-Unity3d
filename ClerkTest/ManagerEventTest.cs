@@ -117,5 +117,45 @@ namespace ClerkTest {
 
             Assert.IsTrue(triggered);
         }
+
+        [TestMethod]
+        public void UnregisterListener() {
+            var state = JObject.Parse(@"
+            {
+                worldTime: 560
+            }");
+
+            var stateManager = new Manager(state);
+
+            var triggered = false;
+            Action action = () => triggered = true;
+            stateManager.RegisterListener("worldTime", action);
+            stateManager.UnregisterListener("worldTime", action);
+
+            stateManager.Set("worldTime", 400);
+
+            Assert.IsFalse(triggered);
+        }
+
+        [TestMethod]
+        public void UnregisterDeepListener() {
+            var state = JObject.Parse(@"
+            {
+                world: {
+                    time: 500
+                }
+            }");
+
+            var stateManager = new Manager(state);
+
+            var triggered = false;
+            Action action = () => triggered = true;
+            stateManager.RegisterListener("world.time", action);
+            stateManager.UnregisterListener("world.time", action);
+
+            stateManager.Set("world.time", 400);
+
+            Assert.IsFalse(triggered);
+        }
     }
 }

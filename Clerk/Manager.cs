@@ -19,10 +19,10 @@ namespace Clerk {
 
         class Event {
             public string Key { get; set; }
-            public List<Action> Handlers { get; private set; }
+            public HashSet<Action> Handlers { get; private set; }
 
             public Event() {
-                Handlers = new List<Action>();
+                Handlers = new HashSet<Action>();
             }//Event
         }//Event
 
@@ -73,6 +73,25 @@ namespace Clerk {
 
             node.Value.Handlers.Add(action);
         }//RegisterListener
+
+        public void UnregisterListener(string path, Action action) {
+            var tokens = Tokenize(path);
+
+            ITreeNode<Event> node = listeners;
+            foreach (var token in tokens) {
+                var match = node.Children.SingleOrDefault(e => e.Value.Key == token.Value);
+
+                if (match == null) {
+                    var child = new TreeNode<Event>(new Event() { Key = token.Value });
+                    node.Children.Add(child);
+                    node = child;
+                } else {
+                    node = match;
+                }//else
+            }//foreach
+
+            node.Value.Handlers.Remove(action);
+        }
 
         ITreeNode<Event> GetNode(string path) {
             var tokens = Tokenize(path);
